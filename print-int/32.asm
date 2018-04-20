@@ -1,12 +1,25 @@
 global start
 
 section .text
-start:
-	mov	eax, 4543
+func_print:
+	; print a 32-bit unsigned integer
+
+	; base pointer
+	push	ebp
+	mov	ebp, esp
+
+	; local vars
+
+	; callee-saved site
+	push	ebx
+	push	edi
+	push	esi
+
+	; int to be printed
+	mov	eax, dword [ebp + 8]  ; as the first arg
 
 	push	dword 10  ; end symbol
-	; mov	ebx, eax
-	mov	ecx, 10
+	mov	ecx, 10   ; divider, divide by 10 each time
 
 div:	mov	edx, 0
 	idiv	ecx
@@ -27,7 +40,7 @@ bfloop:	pop	ecx
 
 ; append a newline
 nl:	mov	[buffer + ebx], byte 10
-	inc	ebx
+	inc	ebx      ; buffer length, is buffer offset + 1
 	jmp	print
 
 print:	push	ebx
@@ -38,11 +51,47 @@ print:	push	ebx
 	int	0x80
 	add	esp, 16
 
+	; return in eax, nothing
+
+	; restore callee-saved registers
+	pop	esi
+	pop	edi
+	pop	ebx
+
+	; deallocate local vars, nothing
+
+	; restore ebp
+	pop	ebp
+
+	; return to caller
+	ret
+
+
+start:
+	; print a 32-bit unsigned int at eax
+	mov	eax, 4959
+
+	; save caller-saved site
+	push	eax
+	push	ebx
+	push	ecx
+
+	; parameters
+	push	eax
+	
+	call	func_print
+
+	; remove parameters
+	add	esp, 4
+
+	; restore caller-saved site
+	add	esp, 12
+
 	push	dword 0
 	mov	eax, 1
 	sub	esp, 12
 	int	0x80
 
 section .data
-buffer:	times 10	db 0
+buffer:	times 33	db 0
 
